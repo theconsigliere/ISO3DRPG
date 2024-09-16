@@ -5,6 +5,7 @@ import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js"
 
 //JS MODULES
 import { World } from "./world"
+import { Player } from "./player"
 
 //GUI
 const gui = new GUI()
@@ -17,6 +18,7 @@ document.body.appendChild(stats.dom)
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(animate)
+renderer.setPixelRatio(devicePixelRatio)
 document.body.appendChild(renderer.domElement)
 
 //SCENE
@@ -28,11 +30,19 @@ const camera = new THREE.PerspectiveCamera(
   1000
 )
 
+//Controls
 const controls = new OrbitControls(camera, renderer.domElement)
+controls.target.set(5, 0, 5)
+camera.position.set(0, 2, 0)
+controls.update()
 
 // TERRAIN
 const world = new World(10, 10)
 scene.add(world)
+
+//player
+const player = new Player(camera, world.terrain)
+scene.add(player)
 
 //LIGHTS
 const sun = new THREE.DirectionalLight()
@@ -43,9 +53,6 @@ scene.add(sun)
 const ambient = new THREE.AmbientLight()
 ambient.intensity = 0.5
 scene.add(ambient)
-
-camera.position.set(10, 5, 10)
-controls.update()
 
 function animate() {
   controls.update()
