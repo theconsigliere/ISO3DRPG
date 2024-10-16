@@ -8,7 +8,11 @@ export class Player extends THREE.Mesh {
     this.geometry = new THREE.CapsuleGeometry(0.25, 0.5)
     this.material = new THREE.MeshStandardMaterial({ color: "blue" })
     //PUT IN MIDDLE OF WORLD
-    this.position.set(5, 0.5, 5)
+    this.position.set(1.5, 0.5, 5.5)
+
+    this.path = []
+    this.pathIndex = -1
+    this.pathUpdater = null
 
     this.camera = camera
     this.world = world
@@ -30,16 +34,53 @@ export class Player extends THREE.Mesh {
     const intersections = this.raycaster.intersectObject(this.world.terrain)
 
     if (intersections.length > 0) {
+      const playerCoords = new THREE.Vector2(
+        Math.floor(this.position.x),
+        Math.floor(this.position.z)
+      )
+
       const selectedCoords = new THREE.Vector2(
         Math.floor(intersections[0].point.x),
         Math.floor(intersections[0].point.z)
       )
 
-      // move the player to the intersection point the player has clicked to
-      this.position.set(selectedCoords.x + 0.5, 0.5, selectedCoords.y + 0.5)
+      // if we click while player is moving, stop the player
+      clearInterval(this.pathUpdater)
 
-      search(selectedCoords, null, this.world)
-      console.log(selectedCoords)
+      // move the player to the intersection point the player has clicked to
+      //  this.position.set(selectedCoords.x + 0.5, 0.5, selectedCoords.y + 0.5)
+
+      // find path from players current postion to selected dquare
+      this.path = search(playerCoords, selectedCoords, this.world)
+      this.world.path.clear()
+
+      if (this.path === null || this.path.length === 0) {
+        console.log("No path found")
+        return
+      }
+
+      this.path.forEach((coords) => {
+        const marker = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.1, 0.1),
+          new THREE.MeshStandardMaterial({ color: "red" })
+        )
+        marker.position.set(coords.x + 0.5, 0, coords.y + 0.5)
+        this.world.path.add(marker)
+      })
+
+      // trigger interval function to update player
+      this.pathIndex = 0
+      this.pathUpdater = setInterval(this.updatePosition.bind(this), 500)
     }
+  }
+
+  updatePosition() {
+    if (this.pathIndex === this.path.length) {
+      clearInterval(this.pathUpdater)
+      return
+    }
+
+    const curr = this.path[this.pathIndex++]
+    this.position.set(curr.x + 0.5, 0.5, curr.y + 0.5)
   }
 }
