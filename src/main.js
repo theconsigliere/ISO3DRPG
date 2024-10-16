@@ -41,7 +41,7 @@ const world = new World(10, 10)
 scene.add(world)
 
 //player
-const player = new Player(camera, world.terrain)
+const player = new Player(camera, world)
 scene.add(player)
 
 //LIGHTS

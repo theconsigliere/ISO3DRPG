@@ -7,6 +7,14 @@ export class World extends THREE.Group {
   // great a data structure to store position of trees, rocks, bushes
   #objectMap = new Map()
 
+  /**
+   *  returns the key for the object map given a set of co-ordinates
+   * @param {THREE.Vector2 } coords
+   * @returns
+   */
+
+  getKey = (coords) => `${coords.x}-${coords.y}`
+
   constructor(width, height) {
     super()
     this.width = width
@@ -110,15 +118,16 @@ export class World extends THREE.Group {
     })
 
     for (let i = 0; i < this.count.trees; i++) {
-      const treeMesh = new THREE.Mesh(treeGeometry, treeMaterial)
-
       const coords = new THREE.Vector2(
         Math.floor(this.width * Math.random()),
         Math.floor(this.height * Math.random())
       )
 
       //dont place objects on top of each other
-      if (this.#objectMap.get(`${coords.x}-${coords.y}`)) continue
+      if (this.#objectMap.has(this.getKey(coords))) continue
+
+      const treeMesh = new THREE.Mesh(treeGeometry, treeMaterial)
+      treeMesh.name = `Tree-(${coords.x}, ${coords.y})`
 
       // to center trees within grid space first floor the number to a whole number then + 0.5 (half a space)
       treeMesh.position.set(coords.x + 0.5, tree.height / 2, coords.y + 0.5)
@@ -126,7 +135,7 @@ export class World extends THREE.Group {
       this.trees.add(treeMesh)
 
       // store tree position in object map
-      this.#objectMap.set(`${coords.x}-${coords.y}`, treeMesh)
+      this.#objectMap.set(this.getKey(coords), treeMesh)
     }
   }
 
@@ -148,8 +157,6 @@ export class World extends THREE.Group {
         rock.minRadius + Math.random() * (rock.maxRadius - rock.minRadius)
       const rockHeight =
         rock.minHeight + Math.random() * (rock.maxHeight - rock.minHeight)
-      const rockGeometry = new THREE.SphereGeometry(rockRadius, 6, 6)
-      const rockMesh = new THREE.Mesh(rockGeometry, rockMaterial)
 
       const coords = new THREE.Vector2(
         Math.floor(this.width * Math.random()),
@@ -157,7 +164,12 @@ export class World extends THREE.Group {
       )
 
       //dont place objects on top of each other
-      if (this.#objectMap.get(`${coords.x}-${coords.y}`)) continue
+      if (this.#objectMap.get(this.getKey(coords))) continue
+
+      const rockGeometry = new THREE.SphereGeometry(rockRadius, 6, 6)
+      const rockMesh = new THREE.Mesh(rockGeometry, rockMaterial)
+
+      rockMesh.name = `Rock-(${coords.x}, ${coords.y})`
 
       // to center trees within grid space first floor the number to a whole number then + 0.5 (half a space)
       rockMesh.position.set(coords.x + 0.5, 0, coords.y + 0.5)
@@ -166,7 +178,7 @@ export class World extends THREE.Group {
       this.rocks.add(rockMesh)
 
       // store rock position in object map
-      this.#objectMap.set(`${coords.x}-${coords.y}`, rockMesh)
+      this.#objectMap.set(this.getKey(coords), rockMesh)
     }
   }
 
@@ -186,8 +198,6 @@ export class World extends THREE.Group {
     for (let i = 0; i < this.count.bushes; i++) {
       const bushRadius =
         bush.minRadius + Math.random() * (bush.maxRadius - bush.minRadius)
-      const bushGeometry = new THREE.SphereGeometry(bushRadius, 8, 8)
-      const bushMesh = new THREE.Mesh(bushGeometry, bushMaterial)
 
       const coords = new THREE.Vector2(
         Math.floor(this.width * Math.random()),
@@ -195,7 +205,12 @@ export class World extends THREE.Group {
       )
 
       //dont place objects on top of each other
-      if (this.#objectMap.get(`${coords.x}-${coords.y}`)) continue
+      if (this.#objectMap.get(this.getKey(coords))) continue
+
+      const bushGeometry = new THREE.SphereGeometry(bushRadius, 8, 8)
+      const bushMesh = new THREE.Mesh(bushGeometry, bushMaterial)
+
+      bushMesh.name = `Bush-(${coords.x}, ${coords.y})`
 
       // to center trees within grid space first floor the number to a whole number then + 0.5 (half a space)
       bushMesh.position.set(coords.x + 0.5, bushRadius, coords.y + 0.5)
@@ -203,7 +218,16 @@ export class World extends THREE.Group {
       this.bushes.add(bushMesh)
 
       // store rock position in object map
-      this.#objectMap.set(`${coords.x}-${coords.y}`, bushMesh)
+      this.#objectMap.set(this.getKey(coords), bushMesh)
     }
+  }
+
+  /**
+   *  returns the object at `coords` if one exisits, otherwise returns null
+   * @param {THREE.Vector2 } coords
+   * @returns {object | null}
+   */
+  getObject(coords) {
+    return this.#objectMap.get(this.getKey(coords)) ?? null
   }
 }
